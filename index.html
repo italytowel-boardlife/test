@@ -1,0 +1,1304 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>판타지왕국:그리스의 전설들 점수계산기</title>
+<style>
+:root {
+  --bg-color:#0f172a; --card-bg:#1e293b; --accent-gold:#fbbf24; --text-main:#f8fafc; --text-muted:#94a3b8;
+  --suit-god:#06b6d4; --suit-hero:#a855f7; --suit-item:#f59e0b; --suit-place:#10b981; --suit-monster:#ef4444; --suit-quest:#84cc16; --afterlife-color:#94a3b8;
+}
+*{box-sizing:border-box;margin:0;padding:0;font-family:'Pretendard',-apple-system,BlinkMacSystemFont,system-ui,Roboto,sans-serif;}
+body{background:var(--bg-color);color:var(--text-main);padding:20px;min-height:100vh;}
+header{text-align:center;margin-bottom:24px;} header h1{font-size:1.8rem;color:var(--accent-gold);}
+.container{display:flex;gap:22px;max-width:1440px;margin:0 auto;align-items:flex-start;}
+.side-nav{position:sticky;top:20px;width:145px;flex-shrink:0;background:#111827;border:1px solid #334155;border-radius:14px;padding:14px;box-shadow:0 8px 20px rgba(0,0,0,.35);}
+.side-nav-title{font-size:.86rem;color:var(--text-muted);margin-bottom:10px;text-align:center;}
+.search-box{margin-bottom:12px;}
+.search-box input{width:100%;background:#0f172a;color:var(--text-main);border:1px solid #475569;border-radius:10px;padding:9px 10px;font-size:.86rem;outline:none;}
+.search-box input:focus{border-color:var(--accent-gold);box-shadow:0 0 0 2px rgba(251,191,36,.18);}
+.search-box button{width:100%;margin-top:6px;background:#334155;color:white;border:1px solid #475569;border-radius:9px;padding:7px 8px;font-size:.78rem;font-weight:800;cursor:pointer;}
+.search-result-note{font-size:.72rem;color:var(--text-muted);margin-top:6px;text-align:center;line-height:1.25;}
+.tabs{display:flex;flex-direction:column;gap:8px;}
+.tab-btn{background:#1e293b;color:var(--text-main);border:1px solid #334155;padding:10px 12px;border-radius:10px;cursor:pointer;font-weight:700;text-align:left;}
+.tab-btn.active{background:var(--accent-gold);color:#111827;border-color:var(--accent-gold);}
+.main-content{flex:1;min-width:0;}
+.card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:14px;}
+.game-card{background:var(--card-bg);border:1px solid #334155;border-radius:12px;padding:14px;display:flex;flex-direction:column;justify-content:space-between;transition:.2s;}
+.game-card:hover{transform:translateY(-2px);border-color:#64748b;} .game-card.focus-highlight{outline:3px solid var(--accent-gold);}
+.card-header{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:start;margin-bottom:8px;} .card-title-line{display:flex;flex-wrap:wrap;gap:5px;align-items:center;line-height:1.35;} .card-title{font-weight:800;font-size:1.05rem;} .card-score-badge{background:#334155;border-radius:6px;padding:2px 8px;font-weight:800;white-space:nowrap;}
+.card-suit{font-size:.72rem;font-weight:900;letter-spacing:.4px;} .suit-god{color:var(--suit-god)} .suit-hero{color:var(--suit-hero)} .suit-item{color:var(--suit-item)} .suit-place{color:var(--suit-place)} .suit-monster{color:var(--suit-monster)} .suit-quest{color:var(--suit-quest)}
+.card-tags,.effective-tags{display:flex;flex-wrap:wrap;gap:4px;margin:0;} .tag-badge{background:#0f172a;border:1px solid #475569;font-size:.70rem;padding:1px 5px;border-radius:5px;color:#cbd5e1;line-height:1.25;}
+.card-effect{font-size:.84rem;color:var(--text-muted);line-height:1.45;margin:6px 0 14px;}
+.card-actions{display:flex;gap:8px;} .action-btn{flex:1;border:0;border-radius:8px;padding:8px 10px;font-weight:800;cursor:pointer;background:#334155;color:white;} .btn-hand.selected{background:#2563eb} .btn-afterlife.selected{background:#475569;color:#fecaca;border:1px solid #ef4444;}
+.scoreboard{position:sticky;top:20px;width:365px;flex-shrink:0;background:linear-gradient(145deg,#1e293b,#0f172a);border:2px solid var(--accent-gold);border-radius:14px;padding:18px;box-shadow:0 10px 25px rgba(0,0,0,.5);}
+.scoreboard h2{font-size:1.15rem;color:var(--accent-gold);text-align:center;border-bottom:1px solid #334155;padding-bottom:10px;margin-bottom:14px;}
+.score-row{display:flex;justify-content:space-between;gap:10px;margin-bottom:9px;font-size:.92rem;} .score-row.total{border-top:2px dashed #334155;padding-top:14px;margin-top:14px;font-size:1.28rem;font-weight:900;color:#4ade80;}
+.score-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:14px 0;} .score-actions button,.manual-box input{border-radius:8px;border:1px solid #475569;padding:9px;background:#0f172a;color:white;} .score-actions button{cursor:pointer;font-weight:800;} .confirm-btn{background:#16a34a!important;border-color:#16a34a!important;} .reset-btn{background:#7f1d1d!important;border-color:#b91c1c!important;}
+.manual-box{margin-top:12px;padding-top:12px;border-top:1px solid #334155;} .manual-box label{display:block;font-size:.83rem;color:var(--text-muted);margin-bottom:5px;}
+.selected-list{margin-top:12px;font-size:.84rem;max-height:430px;overflow-y:auto;} .selected-item{border-top:1px solid #334155;padding:8px 0;display:grid;grid-template-columns:1fr auto;gap:8px;cursor:pointer;}
+.selected-card-name{font-weight:800;} .selected-suit-label{font-weight:800;font-size:.76rem;} .selected-card-title-row{display:flex;flex-wrap:wrap;gap:6px;align-items:baseline;line-height:1.35;} .selected-inline-tags{font-size:.74rem;color:#cbd5e1;font-weight:500;} .selected-inline-tags .state-note{color:#fbbf24;} .selected-card-score{color:var(--accent-gold);font-size:.82rem;margin:2px 0;} .selected-card-effect{color:var(--text-muted);font-size:.78rem;line-height:1.35;margin-top:5px;}
+.selected-actions{display:flex;flex-direction:column;gap:5px;} .selected-zone-btn{border:1px solid #475569;border-radius:7px;padding:5px 7px;background:#111827;color:white;cursor:pointer;font-size:.75rem;font-weight:800;} .active-hand{background:#2563eb!important} .active-afterlife{background:#475569!important;color:#fecaca!important;border-color:#ef4444!important}
+.effect-panel{grid-column:1 / -1;background:#0f172a;border:1px solid #334155;border-radius:10px;padding:9px;margin-top:8px;cursor:default;} .effect-panel-title{font-weight:900;color:var(--accent-gold);font-size:.82rem;margin-bottom:7px;}
+.effect-row{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0;align-items:center;} .effect-row select{background:#111827;color:white;border:1px solid #475569;border-radius:7px;padding:6px;max-width:150px;} .effect-row button{background:#334155;color:white;border:1px solid #475569;border-radius:7px;padding:6px 8px;cursor:pointer;font-weight:700;}
+.effect-row button.apply{background:#14532d;border-color:#16a34a;} .effect-row button.clear{background:#4c1d1d;border-color:#dc2626;}
+.effect-note{font-size:.76rem;color:var(--text-muted);line-height:1.35;margin-top:4px;}
+.status-line{font-size:.76rem;color:#86efac;margin-top:4px;}
+.warning-box{margin-top:12px;color:#fca5a5;font-size:.82rem;line-height:1.4;} .confirm-result{display:none;margin-top:16px;background:#0f172a;border:1px solid #475569;border-radius:12px;padding:14px;font-size:.86rem;line-height:1.5;}
+.confirm-result h3{color:var(--accent-gold);margin-bottom:8px;} .confirm-result-section{border-top:1px solid #334155;margin-top:12px;padding-top:10px;} .confirm-result-row{display:flex;justify-content:space-between;margin:4px 0;} .confirm-result-total{font-size:1.1rem;color:#4ade80;font-weight:900;} .applied-effect{margin-top:4px;color:#cbd5e1;} .applied-effect strong{color:#f8fafc;}
+.effect-line{border-top:1px solid #1f2937;padding:7px 0;} .plus{color:#86efac} .minus{color:#fca5a5} .zero{color:#94a3b8}
+@media(max-width:1000px){body{padding:12px} .container{flex-direction:column} .side-nav,.scoreboard{position:static;width:100%} .tabs{flex-direction:row;overflow-x:auto} .tab-btn{white-space:nowrap;text-align:center} .scoreboard{order:-1}}
+</style>
+</head>
+<body>
+<header><h1>🏛️ 판타지왕국:그리스의 전설들<br>점수계산기</h1></header>
+<div class="container">
+  <nav class="side-nav">
+    <div class="side-nav-title">카드 종류</div>
+    <div class="search-box">
+      <input id="card-search" type="search" placeholder="카드명 검색" oninput="handleCardSearch()" autocomplete="off">
+      <button type="button" onclick="clearCardSearch()">검색 초기화</button>
+      <div class="search-result-note" id="search-result-note"></div>
+    </div>
+    <div class="tabs" id="suit-tabs">
+      <button class="tab-btn active" onclick="filterSuit(event,'all')">전체</button>
+      <button class="tab-btn" onclick="filterSuit(event,'god')">신</button>
+      <button class="tab-btn" onclick="filterSuit(event,'hero')">영웅</button>
+      <button class="tab-btn" onclick="filterSuit(event,'item')">아이템</button>
+      <button class="tab-btn" onclick="filterSuit(event,'place')">장소</button>
+      <button class="tab-btn" onclick="filterSuit(event,'monster')">몬스터</button>
+      <button class="tab-btn" onclick="filterSuit(event,'quest')">퀘스트</button>
+    </div>
+  </nav>
+  <main class="main-content"><div class="card-grid" id="card-display-grid"></div></main>
+  <aside class="scoreboard">
+    <div class="score-row"><span>기본 점수 합계</span><span id="base-score">0점</span></div>
+    <div class="score-row"><span>보너스 점수 합계</span><span id="bonus-score">0점</span></div>
+    <div class="score-row"><span>페널티 감점</span><span id="penalty-score" class="minus">0점</span></div>
+    <div class="score-row"><span>사후세계 감점</span><span id="afterlife-score" class="minus">0점</span></div>
+    <div class="score-row total"><span>최종 점수</span><span id="final-score">0점</span></div>
+    <div class="manual-box"><label>수동 보정점수</label><input type="number" id="manual-adjust" value="0" oninput="scoreConfirmed=false;updateCalculator()"></div>
+    <div class="score-actions"><button class="confirm-btn" onclick="confirmScore()">확정</button><button class="reset-btn" onclick="resetSelection()">선택 초기화</button></div>
+    <h3 style="margin-top:15px;font-size:.95rem;color:var(--accent-gold);">선택된 카드 목록</h3>
+    <div class="selected-list" id="selected-cards-summary"></div>
+    <div class="warning-box" id="warnings"></div>
+    <div class="confirm-result" id="confirm-result"></div>
+  </aside>
+</div>
+<script>
+const suitLabels = {
+            god: "신",
+            hero: "영웅",
+            item: "아이템",
+            place: "장소",
+            monster: "몬스터",
+            quest: "퀘스트"
+        };
+
+        const suitOrder = { god: 1, hero: 2, item: 3, place: 4, monster: 5, quest: 6 };
+
+        const cardsDatabase = [
+            {
+                        "id": "apollo",
+                        "name": "아폴론",
+                        "suit": "god",
+                        "base": 5,
+                        "tags": [
+                                    "예술가"
+                        ],
+                        "effect": "다른 예술가마다 +5."
+            },
+            {
+                        "id": "ares",
+                        "name": "아레스",
+                        "suit": "god",
+                        "base": 7,
+                        "tags": [
+                                    "전사"
+                        ],
+                        "effect": "다른 전사마다 +7."
+            },
+            {
+                        "id": "artemis",
+                        "name": "아르테미스",
+                        "suit": "god",
+                        "base": 7,
+                        "tags": [],
+                        "effect": "적대적 몬스터마다 +7."
+            },
+            {
+                        "id": "athena",
+                        "name": "아테나",
+                        "suit": "god",
+                        "base": 4,
+                        "tags": [
+                                    "영악함",
+                                    "현명함",
+                                    "예술가",
+                                    "전사"
+                        ],
+                        "effect": "이 카드의 태그 중 1개 이상을 가진 살아 있는 영웅마다 +4. 살아 있는 영웅 1명에게 이 카드의 태그 1개를 추가할 수 있음."
+            },
+            {
+                        "id": "demeter",
+                        "name": "데메테르",
+                        "suit": "god",
+                        "base": 5,
+                        "tags": [
+                                    "식물"
+                        ],
+                        "effect": "다른 식물마다 +5."
+            },
+            {
+                        "id": "moirai",
+                        "name": "모이라이",
+                        "suit": "god",
+                        "base": 3,
+                        "tags": [],
+                        "effect": "사후세계에 버릴 수 있음. 버리면 덱에서 선언한 수트/태그 카드를 찾는 효과."
+            },
+            {
+                        "id": "hades",
+                        "name": "하데스",
+                        "suit": "god",
+                        "base": 3,
+                        "tags": [],
+                        "effect": "사후세계에 있는 다른 카드마다 +3. 사후세계에 버릴 수 있음."
+            },
+            {
+                        "id": "hecate",
+                        "name": "헤카테",
+                        "suit": "god",
+                        "base": 3,
+                        "tags": [
+                                    "마법"
+                        ],
+                        "effect": "다른 마법마다 +9."
+            },
+            {
+                        "id": "hephaestus",
+                        "name": "헤파이스토스",
+                        "suit": "god",
+                        "base": 5,
+                        "tags": [
+                                    "예술가"
+                        ],
+                        "effect": "다른 아이템마다 +10."
+            },
+            {
+                        "id": "hera",
+                        "name": "헤라",
+                        "suit": "god",
+                        "base": 6,
+                        "tags": [],
+                        "effect": "살아 있는 영웅 쌍마다 +12."
+            },
+            {
+                        "id": "hermes",
+                        "name": "헤르메스",
+                        "suit": "god",
+                        "base": 5,
+                        "tags": [
+                                    "마법"
+                        ],
+                        "effect": "장소마다 +5, 살아 있는 민첩 영웅마다 +5, 사후세계 영웅마다 +5."
+            },
+            {
+                        "id": "muse",
+                        "name": "무사",
+                        "suit": "god",
+                        "base": 3,
+                        "tags": [
+                                    "예술가"
+                        ],
+                        "effect": "다른 예술가마다 +8."
+            },
+            {
+                        "id": "persephone",
+                        "name": "페르세포네",
+                        "suit": "god",
+                        "base": 3,
+                        "tags": [
+                                    "식물"
+                        ],
+                        "effect": "사후세계 카드 1장과 식물 1장의 쌍마다 +6. 사후세계에 버릴 수 있음."
+            },
+            {
+                        "id": "poseidon",
+                        "name": "포세이돈",
+                        "suit": "god",
+                        "base": 5,
+                        "tags": [
+                                    "물"
+                        ],
+                        "effect": "물마다 +5, 몬스터마다 +5."
+            },
+            {
+                        "id": "zeus",
+                        "name": "제우스",
+                        "suit": "god",
+                        "base": 8,
+                        "tags": [
+                                    "현명함"
+                        ],
+                        "effect": "다른 신마다 +4, 군주마다 +4."
+            },
+            {
+                        "id": "dionysus",
+                        "name": "디오니소스",
+                        "suit": "god",
+                        "base": 4,
+                        "tags": [
+                                    "식물"
+                        ],
+                        "effect": "프로모 카드. 영웅 1명의 태그와 보너스를 제거. 태그 또는 보너스가 없는 영웅 1명의 기본 점수를 추가."
+            },
+            {
+                        "id": "achilles",
+                        "name": "아킬레우스",
+                        "suit": "hero",
+                        "base": 7,
+                        "tags": [
+                                    "전사",
+                                    "완력"
+                        ],
+                        "effect": "아테나 / 헤라 / 포세이돈 / 스틱스강이 있으면 +5."
+            },
+            {
+                        "id": "agamemnon",
+                        "name": "아가멤논",
+                        "suit": "hero",
+                        "base": 9,
+                        "tags": [
+                                    "전사",
+                                    "군주"
+                        ],
+                        "effect": "효과 없음."
+            },
+            {
+                        "id": "andromeda",
+                        "name": "안드로메다",
+                        "suit": "hero",
+                        "base": 3,
+                        "tags": [],
+                        "effect": "퀘스트의 적대적 몬스터 조건을 모두 만족하면 +17."
+            },
+            {
+                        "id": "arachne",
+                        "name": "아라크네",
+                        "suit": "hero",
+                        "base": 3,
+                        "tags": [
+                                    "예술가"
+                        ],
+                        "effect": "신보다 영웅이 더 많으면 +10."
+            },
+            {
+                        "id": "atalanta",
+                        "name": "아탈란타",
+                        "suit": "hero",
+                        "base": 12,
+                        "tags": [
+                                    "민첩"
+                        ],
+                        "effect": "효과 없음."
+            },
+            {
+                        "id": "circe",
+                        "name": "키르케",
+                        "suit": "hero",
+                        "base": 14,
+                        "tags": [
+                                    "마법",
+                                    "현명함"
+                        ],
+                        "effect": "영악함이 있는 살아 있는 영웅이 없으면 다른 살아 있는 영웅의 태그와 보너스 제거."
+            },
+            {
+                        "id": "hector",
+                        "name": "헥토르",
+                        "suit": "hero",
+                        "base": 6,
+                        "tags": [
+                                    "전사",
+                                    "완력"
+                        ],
+                        "effect": "아레스 / 아폴론 / 아르테미스가 있으면 +6."
+            },
+            {
+                        "id": "helen",
+                        "name": "헬레네",
+                        "suit": "hero",
+                        "base": 2,
+                        "tags": [],
+                        "effect": "전사마다 +10."
+            },
+            {
+                        "id": "heracles",
+                        "name": "헤라클레스",
+                        "suit": "hero",
+                        "base": 12,
+                        "tags": [
+                                    "완력"
+                        ],
+                        "effect": "적대적 몬스터마다 +5. 게임 종료 시 살아 있으면 손의 다른 영웅 1명을 사후세계로 보냄."
+            },
+            {
+                        "id": "hippolyta",
+                        "name": "히폴리타",
+                        "suit": "hero",
+                        "base": 10,
+                        "tags": [
+                                    "군주",
+                                    "완력"
+                        ],
+                        "effect": "효과 없음."
+            },
+            {
+                        "id": "homer",
+                        "name": "호메로스",
+                        "suit": "hero",
+                        "base": 6,
+                        "tags": [
+                                    "예술가"
+                        ],
+                        "effect": "전사마다 +6, 퀘스트마다 +6."
+            },
+            {
+                        "id": "jason",
+                        "name": "이아손",
+                        "suit": "hero",
+                        "base": 4,
+                        "tags": [
+                                    "민첩"
+                        ],
+                        "effect": "퀘스트마다 +4, 다른 살아 있는 영웅마다 +4."
+            },
+            {
+                        "id": "medea",
+                        "name": "메데이아",
+                        "suit": "hero",
+                        "base": 7,
+                        "tags": [
+                                    "영악함",
+                                    "마법"
+                        ],
+                        "effect": "효과 없음."
+            },
+            {
+                        "id": "odysseus",
+                        "name": "오디세우스",
+                        "suit": "hero",
+                        "base": 4,
+                        "tags": [
+                                    "영악함",
+                                    "군주",
+                                    "전사"
+                        ],
+                        "effect": "물마다 +4."
+            },
+            {
+                        "id": "orpheus",
+                        "name": "오르페우스",
+                        "suit": "hero",
+                        "base": 6,
+                        "tags": [
+                                    "예술가"
+                        ],
+                        "effect": "오르페우스가 살아 있다면 사후세계 카드 1장의 기본 점수를 추가."
+            },
+            {
+                        "id": "penelope",
+                        "name": "페넬로페",
+                        "suit": "hero",
+                        "base": 5,
+                        "tags": [
+                                    "영악함",
+                                    "군주",
+                                    "예술가"
+                        ],
+                        "effect": "효과 없음."
+            },
+            {
+                        "id": "perseus",
+                        "name": "페르세우스",
+                        "suit": "hero",
+                        "base": 5,
+                        "tags": [
+                                    "민첩"
+                        ],
+                        "effect": "신이 있으면 +5, 아이템이 있으면 +5."
+            },
+            {
+                        "id": "theseus",
+                        "name": "테세우스",
+                        "suit": "hero",
+                        "base": 10,
+                        "tags": [
+                                    "완력",
+                                    "민첩"
+                        ],
+                        "effect": "효과 없음."
+            },
+            {
+                        "id": "tiresias",
+                        "name": "테이레시아스",
+                        "suit": "hero",
+                        "base": 11,
+                        "tags": [
+                                    "현명함"
+                        ],
+                        "effect": "효과 없음."
+            },
+            {
+                        "id": "apple_of_discord",
+                        "name": "불화의 사과",
+                        "suit": "item",
+                        "base": 25,
+                        "tags": [
+                                    "식물"
+                        ],
+                        "effect": "신 / 살아 있는 영웅 / 몬스터는 각 종류별 첫 번째 카드를 제외하고 추가 카드마다 -5."
+            },
+            {
+                        "id": "argo",
+                        "name": "아르고호",
+                        "suit": "item",
+                        "base": 0,
+                        "tags": [
+                                    "물"
+                        ],
+                        "effect": "물 카드 장수 × 살아 있는 영웅 카드 장수 × 5."
+            },
+            {
+                        "id": "magic_bridle",
+                        "name": "마법 고삐",
+                        "suit": "item",
+                        "base": 11,
+                        "tags": [
+                                    "마법"
+                        ],
+                        "effect": "원하는 몬스터 1장의 페널티 제거."
+            },
+            {
+                        "id": "cornucopia",
+                        "name": "코르누코피아",
+                        "suit": "item",
+                        "base": 2,
+                        "tags": [
+                                    "식물"
+                        ],
+                        "effect": "사후세계에 버릴 수 있음. 즉시 덱에서 2장 뽑고 버리는 공간에 2장 버림."
+            },
+            {
+                        "id": "golden_apple",
+                        "name": "황금 사과",
+                        "suit": "item",
+                        "base": 3,
+                        "tags": [
+                                    "식물"
+                        ],
+                        "effect": "퀘스트가 있으면 +14."
+            },
+            {
+                        "id": "golden_fleece",
+                        "name": "황금 양털",
+                        "suit": "item",
+                        "base": 6,
+                        "tags": [
+                                    "신성"
+                        ],
+                        "effect": "살아 있는 영웅과 마법이 있으면 +12."
+            },
+            {
+                        "id": "helmet_of_hades",
+                        "name": "하데스의 투구",
+                        "suit": "item",
+                        "base": 13,
+                        "tags": [
+                                    "마법"
+                        ],
+                        "effect": "게임 종료 시 다른 효과로 사후세계에 가야 할 영웅 1명을 살아 있는 상태로 유지."
+            },
+            {
+                        "id": "moly",
+                        "name": "몰리",
+                        "suit": "item",
+                        "base": 4,
+                        "tags": [
+                                    "식물",
+                                    "마법"
+                        ],
+                        "effect": "아무 페널티 하나 제거."
+            },
+            {
+                        "id": "pomegranate",
+                        "name": "석류",
+                        "suit": "item",
+                        "base": 6,
+                        "tags": [
+                                    "식물"
+                        ],
+                        "effect": "사후세계에 버릴 수 있음. 게임 종료 시 손의 신 1명을 사후세계로 보냄."
+            },
+            {
+                        "id": "trojan_horse",
+                        "name": "트로이의 목마",
+                        "suit": "item",
+                        "base": 4,
+                        "tags": [
+                                    "전사"
+                        ],
+                        "effect": "영악함과 살아 있는 영웅 2명 이상이 있으면 +15."
+            },
+            {
+                        "id": "winged_sandals",
+                        "name": "날개 달린 샌들",
+                        "suit": "item",
+                        "base": 10,
+                        "tags": [
+                                    "신성"
+                        ],
+                        "effect": "살아 있는 영웅과 장소 2장 이상이 있으면 +15. 살아 있는 영웅 1명에게 민첩 태그 추가."
+            },
+            {
+                        "id": "daphne_spring",
+                        "name": "다프네의 개울",
+                        "suit": "place",
+                        "base": 12,
+                        "tags": [
+                                    "물",
+                                    "식물"
+                        ],
+                        "effect": "효과 없음."
+            },
+            {
+                        "id": "garden_hesperides",
+                        "name": "헤스페리데스의 정원",
+                        "suit": "place",
+                        "base": 17,
+                        "tags": [
+                                    "식물",
+                                    "신성",
+                                    "마법"
+                        ],
+                        "effect": "적대적 몬스터가 없으면 -12."
+            },
+            {
+                        "id": "lotus_eaters",
+                        "name": "연꽃 자생지",
+                        "suit": "place",
+                        "base": 23,
+                        "tags": [
+                                    "식물"
+                        ],
+                        "effect": "모든 살아 있는 영웅의 태그, 보너스, 페널티 제거."
+            },
+            {
+                        "id": "mount_olympus",
+                        "name": "올림푸스산",
+                        "suit": "place",
+                        "base": 6,
+                        "tags": [
+                                    "신성"
+                        ],
+                        "effect": "신마다 +6."
+            },
+            {
+                        "id": "oracle_delphi",
+                        "name": "델포이의 신탁",
+                        "suit": "place",
+                        "base": 7,
+                        "tags": [
+                                    "신성"
+                        ],
+                        "effect": "사후세계에 버릴 수 있음. 덱 위 5장을 보고 원하는 만큼 아래로 보냄."
+            },
+            {
+                        "id": "palace",
+                        "name": "궁전",
+                        "suit": "place",
+                        "base": 7,
+                        "tags": [],
+                        "effect": "군주가 있으면 +7, 예술가마다 +7."
+            },
+            {
+                        "id": "garden_persephone",
+                        "name": "페르세포네의 정원",
+                        "suit": "place",
+                        "base": 4,
+                        "tags": [
+                                    "신성",
+                                    "식물"
+                        ],
+                        "effect": "식물 아이템마다 +4. 사후세계에 버릴 수 있음."
+            },
+            {
+                        "id": "river_lethe",
+                        "name": "레테강",
+                        "suit": "place",
+                        "base": 6,
+                        "tags": [
+                                    "물",
+                                    "신성"
+                        ],
+                        "effect": "사후세계에 버릴 수 있음. 사후세계에 있지 않으면 -20. 사후세계에 없는 영웅의 보너스와 태그를 세지 않음."
+            },
+            {
+                        "id": "river_styx",
+                        "name": "스틱스강",
+                        "suit": "place",
+                        "base": 0,
+                        "tags": [
+                                    "물",
+                                    "신성",
+                                    "마법"
+                        ],
+                        "effect": "신과 살아 있는 영웅이 있으면 +5. 사후세계에 버릴 수 있음. 사후세계에 있지 않으면 -20."
+            },
+            {
+                        "id": "sacrificial_altar",
+                        "name": "희생제단",
+                        "suit": "place",
+                        "base": 0,
+                        "tags": [
+                                    "신성"
+                        ],
+                        "effect": "사후세계에 있는 영웅마다 +7. 사후세계에 버릴 수 있음. 손의 영웅 1명을 사후세계로 보내고 덱 맨 위 카드로 대체."
+            },
+            {
+                        "id": "temple",
+                        "name": "신전",
+                        "suit": "place",
+                        "base": 6,
+                        "tags": [
+                                    "신성"
+                        ],
+                        "effect": "신이 있으면 +6, 예술가마다 +6."
+            },
+            {
+                        "id": "labyrinth",
+                        "name": "미궁",
+                        "suit": "place",
+                        "base": 3,
+                        "tags": [],
+                        "effect": "적대적 몬스터가 있으면 +10, 영악함 있는 살아 있는 영웅이 있으면 +10."
+            },
+            {
+                        "id": "antaeus",
+                        "name": "안타이오스",
+                        "suit": "monster",
+                        "base": 18,
+                        "tags": [
+                                    "적대적"
+                        ],
+                        "effect": "살아 있는 완력 영웅이 없으면 모든 영웅을 사후세계로 보냄."
+            },
+            {
+                        "id": "calydonian_boar",
+                        "name": "칼리돈의 멧돼지",
+                        "suit": "monster",
+                        "base": 24,
+                        "tags": [
+                                    "적대적"
+                        ],
+                        "effect": "살아 있는 영웅이 3명 이상 없으면 모든 영웅을 사후세계로 보냄."
+            },
+            {
+                        "id": "cerberus",
+                        "name": "케르베로스",
+                        "suit": "monster",
+                        "base": 5,
+                        "tags": [
+                                    "적대적"
+                        ],
+                        "effect": "사후세계에 있는 영웅마다 +5. 사후세계에 버릴 수 있음. 사후세계에 있지 않으면 -5."
+            },
+            {
+                        "id": "chiron",
+                        "name": "케이론",
+                        "suit": "monster",
+                        "base": 6,
+                        "tags": [
+                                    "우호적",
+                                    "현명함"
+                        ],
+                        "effect": "살아 있는 영웅 1명에게 태그 1개 추가."
+            },
+            {
+                        "id": "dryad",
+                        "name": "드라이어드",
+                        "suit": "monster",
+                        "base": 14,
+                        "tags": [
+                                    "우호적",
+                                    "식물",
+                                    "현명함"
+                        ],
+                        "effect": "효과 없음."
+            },
+            {
+                        "id": "hydra",
+                        "name": "레르네의 히드라",
+                        "suit": "monster",
+                        "base": 17,
+                        "tags": [
+                                    "적대적"
+                        ],
+                        "effect": "서로 다른 태그를 3개 이상 가진 살아 있는 영웅이 없으면 모든 영웅을 사후세계로 보냄."
+            },
+            {
+                        "id": "medusa",
+                        "name": "메두사",
+                        "suit": "monster",
+                        "base": 15,
+                        "tags": [
+                                    "적대적"
+                        ],
+                        "effect": "살아 있는 영악한 또는 민첩 영웅이 없으면 모든 영웅을 사후세계로 보냄."
+            },
+            {
+                        "id": "minotaur",
+                        "name": "미노타우로스",
+                        "suit": "monster",
+                        "base": 15,
+                        "tags": [
+                                    "적대적"
+                        ],
+                        "effect": "살아 있는 영악한 또는 완력 영웅이 없으면 모든 영웅을 사후세계로 보냄."
+            },
+            {
+                        "id": "pegasus",
+                        "name": "페가수스",
+                        "suit": "monster",
+                        "base": 20,
+                        "tags": [
+                                    "우호적"
+                        ],
+                        "effect": "살아 있는 영웅 하나에 예술가와 민첩 태그가 모두 있으면 +10. 현명함이 없으면 -10."
+            },
+            {
+                        "id": "scylla_charybdis",
+                        "name": "스킬라와 카리브디스",
+                        "suit": "monster",
+                        "base": 17,
+                        "tags": [
+                                    "적대적",
+                                    "물"
+                        ],
+                        "effect": "살아 있는 민첩 영웅이 없으면 모든 영웅을 사후세계로 보냄."
+            },
+            {
+                        "id": "sirens",
+                        "name": "세이렌",
+                        "suit": "monster",
+                        "base": 16,
+                        "tags": [
+                                    "적대적",
+                                    "물",
+                                    "예술가"
+                        ],
+                        "effect": "살아 있는 현명한 영웅이 없으면 모든 영웅을 사후세계로 보냄."
+            },
+            {
+                        "id": "twelve_labors",
+                        "name": "열두 과업",
+                        "suit": "quest",
+                        "base": 0,
+                        "tags": [],
+                        "effect": "살아 있는 영웅이 필요. 완력마다 +12, 적대적 몬스터마다 +12."
+            },
+            {
+                        "id": "apotheosis",
+                        "name": "신격화",
+                        "suit": "quest",
+                        "base": 0,
+                        "tags": [],
+                        "effect": "살아 있는 영웅이 필요. 영웅 + 신 + 신성 + 마법 조건을 만족하면 +28."
+            },
+            {
+                        "id": "eleusinian_mysteries",
+                        "name": "엘레우시스 제전",
+                        "suit": "quest",
+                        "base": 0,
+                        "tags": [],
+                        "effect": "살아 있는 영웅이 필요. 영웅 + 식물 + 예술가 + 마법 조건을 만족하면 +27."
+            },
+            {
+                        "id": "legendary_threat",
+                        "name": "전설적인 위협",
+                        "suit": "quest",
+                        "base": 0,
+                        "tags": [],
+                        "effect": "살아 있는 영웅 + 신 + 장소 + 몬스터 + 아이템 조건을 만족하면 +30."
+            },
+            {
+                        "id": "glimpse_divinity",
+                        "name": "신성을 엿보다",
+                        "suit": "quest",
+                        "base": 0,
+                        "tags": [],
+                        "effect": "살아 있는 영웅이 필요. 신마다 +8, 신성마다 +8."
+            },
+            {
+                        "id": "long_journey",
+                        "name": "긴 여정",
+                        "suit": "quest",
+                        "base": 0,
+                        "tags": [],
+                        "effect": "살아 있는 영웅이 필요. 장소마다 +11."
+            },
+            {
+                        "id": "lost_knowledge",
+                        "name": "잃어버린 지식",
+                        "suit": "quest",
+                        "base": 0,
+                        "tags": [],
+                        "effect": "살아 있는 영웅이 필요. 예술가 / 마법 / 현명함마다 +7."
+            },
+            {
+                        "id": "olympic_games",
+                        "name": "올림픽 게임",
+                        "suit": "quest",
+                        "base": 0,
+                        "tags": [],
+                        "effect": "살아 있는 영웅이 필요. 민첩 또는 완력을 가진 살아 있는 영웅마다 +11."
+            },
+            {
+                        "id": "resisting_kingdom",
+                        "name": "저항하는 왕국",
+                        "suit": "quest",
+                        "base": 0,
+                        "tags": [],
+                        "effect": "살아 있는 군주 영웅과 현명함이 모두 있으면 +27."
+            },
+            {
+                        "id": "trojan_war",
+                        "name": "트로이 전쟁",
+                        "suit": "quest",
+                        "base": 0,
+                        "tags": [],
+                        "effect": "살아 있는 영웅이 필요. 전사마다 +13."
+            },
+            {
+                        "id": "visit_underworld",
+                        "name": "지하세계 방문",
+                        "suit": "quest",
+                        "base": 0,
+                        "tags": [],
+                        "effect": "살아 있는 영웅이 필요. 사후세계에 있는 카드마다 +6."
+            }
+];
+
+        
+
+let selectedHand = [];
+let selectedAfterlife = [];
+let activeSearch = "";
+let scoreConfirmed = false;
+let activeSuit = 'all';
+let dionysusBaseTargetId = '';
+let helmetProtectedHeroId = '';
+const ALL_TAGS = ["군주","민첩","완력","예술가","영악함","현명함","전사","우호적","적대적","물","신성","식물","마법"];
+
+function cloneCardRef(id) { return cardsDatabase.find(c => c.id === id); }
+function getSources(card, key) { return Array.isArray(card[key]) ? card[key] : []; }
+function addSource(card, key, source) { card[key] = getSources(card,key); if(!card[key].includes(source)) card[key].push(source); }
+function removeSource(card, key, source) { card[key] = getSources(card,key).filter(s => s !== source); }
+function clearSource(source) {
+  cardsDatabase.forEach(card => {
+    // 태그 추가 효과는 addedTags에는 실제 태그명, addedTagSource에는 효과 출처가 저장됨.
+    // 따라서 해제 시 출처에 해당하는 태그명을 찾아 addedTags에서도 함께 제거해야 함.
+    if(card.addedTagSource && card.addedTagSource[source]) {
+      const tagToRemove = card.addedTagSource[source];
+      card.addedTags = getSources(card,'addedTags').filter(t => t !== tagToRemove);
+      delete card.addedTagSource[source];
+      if(Object.keys(card.addedTagSource).length === 0) delete card.addedTagSource;
+    }
+
+    // 제거/무효화 효과는 배열에 효과 출처명이 저장되어 있으므로 출처명으로 제거
+    ['tagDisabledBy','bonusDisabledBy','penaltyDisabledBy'].forEach(key => removeSource(card,key,source));
+
+    if(Array.isArray(card.addedTags) && card.addedTags.length === 0) delete card.addedTags;
+    ['tagDisabledBy','bonusDisabledBy','penaltyDisabledBy'].forEach(key => {
+      if(Array.isArray(card[key]) && card[key].length === 0) delete card[key];
+    });
+  });
+  if(source === '디오니소스') dionysusBaseTargetId = '';
+  if(source === '하데스의 투구') helmetProtectedHeroId = '';
+}
+function isTagDisabled(card) { return getSources(card,'tagDisabledBy').length>0; }
+function isBonusDisabled(card) { return getSources(card,'bonusDisabledBy').length>0; }
+function isPenaltyDisabled(card) { return getSources(card,'penaltyDisabledBy').length>0; }
+function getEffectiveTags(card) {
+  if(isTagDisabled(card)) return [];
+  return [...new Set([...(card.tags||[]), ...getSources(card,'addedTags')])];
+}
+function cardHasTag(card, tag) { return getEffectiveTags(card).includes(tag); }
+function renderEffectiveTags(card) {
+  const tags = getEffectiveTags(card);
+  const notes=[];
+  if(getSources(card,'addedTags').length) notes.push(`<span style="color:#86efac;">추가: ${getSources(card,'addedTags').join(', ')}</span>`);
+  if(isTagDisabled(card)) notes.push(`<span style="color:#fbbf24;">태그 제거: ${getSources(card,'tagDisabledBy').join(', ')}</span>`);
+  if(isBonusDisabled(card)) notes.push(`<span style="color:#fbbf24;">보너스 제거: ${getSources(card,'bonusDisabledBy').join(', ')}</span>`);
+  if(isPenaltyDisabled(card)) notes.push(`<span style="color:#fbbf24;">페널티 제거: ${getSources(card,'penaltyDisabledBy').join(', ')}</span>`);
+  return `현재 태그: ${tags.length ? tags.join(', ') : '없음'}${notes.length ? '<br>'+notes.join(' / ') : ''}`;
+}
+function renderEffectiveTagsInline(card) {
+  const tags = getEffectiveTags(card);
+  const notes=[];
+  if(getSources(card,'addedTags').length) notes.push(`추가: ${getSources(card,'addedTags').join(', ')}`);
+  if(isTagDisabled(card)) notes.push(`태그 제거: ${getSources(card,'tagDisabledBy').join(', ')}`);
+  if(isBonusDisabled(card)) notes.push(`보너스 제거: ${getSources(card,'bonusDisabledBy').join(', ')}`);
+  if(isPenaltyDisabled(card)) notes.push(`페널티 제거: ${getSources(card,'penaltyDisabledBy').join(', ')}`);
+  const tagText = `현재 태그: ${tags.length ? tags.join(', ') : '없음'}`;
+  const noteText = notes.length ? ` <span class="state-note">(${notes.join(' / ')})</span>` : '';
+  return `<span class="selected-inline-tags">${tagText}${noteText}</span>`;
+}
+
+function getEffectApplicationsBySource(sourceName) {
+  const applications = [];
+  cardsDatabase.forEach(target => {
+    if(target.addedTagSource && target.addedTagSource[sourceName]) {
+      applications.push(`${target.name}에 ${target.addedTagSource[sourceName]} 태그 추가`);
+    }
+    if(getSources(target,'tagDisabledBy').includes(sourceName)) {
+      applications.push(`${target.name}의 태그 제거`);
+    }
+    if(getSources(target,'bonusDisabledBy').includes(sourceName)) {
+      applications.push(`${target.name}의 보너스 제거`);
+    }
+    if(getSources(target,'penaltyDisabledBy').includes(sourceName)) {
+      applications.push(`${target.name}의 페널티 제거`);
+    }
+  });
+  if(sourceName === '디오니소스' && dionysusBaseTargetId) {
+    const target = cloneCardRef(dionysusBaseTargetId);
+    if(target) applications.push(`${target.name}의 기본점수 ${target.base}점 추가 대상으로 지정`);
+  }
+  if(sourceName === '하데스의 투구' && helmetProtectedHeroId) {
+    const target = cloneCardRef(helmetProtectedHeroId);
+    if(target) applications.push(`${target.name}을 사후세계 이동 보호 대상으로 지정`);
+  }
+  return [...new Set(applications)];
+}
+function getCardAppliedStateNotes(card) {
+  const notes = [];
+  const effectiveTags = getEffectiveTags(card);
+  notes.push(`현재 태그: ${effectiveTags.length ? effectiveTags.join(', ') : '없음'}`);
+  if(getSources(card,'addedTags').length) notes.push(`추가 태그: ${getSources(card,'addedTags').join(', ')}`);
+  if(isTagDisabled(card)) notes.push(`태그 제거 적용됨: ${getSources(card,'tagDisabledBy').join(', ')}`);
+  if(isBonusDisabled(card)) notes.push(`보너스 제거 적용됨: ${getSources(card,'bonusDisabledBy').join(', ')}`);
+  if(isPenaltyDisabled(card)) notes.push(`페널티 제거 적용됨: ${getSources(card,'penaltyDisabledBy').join(', ')}`);
+  return notes;
+}
+function renderAppliedEffectLine(row) {
+  const card = row.card;
+  const sourceApplications = getEffectApplicationsBySource(card.name);
+  const stateNotes = getCardAppliedStateNotes(card);
+  const scoreNotes = [];
+  if(isBonusDisabled(card)) scoreNotes.push(`이 카드의 보너스는 제거되어 보너스 0점으로 계산`);
+  else scoreNotes.push(`계산된 보너스 ${formatSignedScore(row.bonus)}`);
+  if(isPenaltyDisabled(card)) scoreNotes.push(`이 카드의 페널티는 제거되어 페널티 0점으로 계산`);
+  else if(row.penalty !== 0) scoreNotes.push(`계산된 페널티 ${formatSignedScore(row.penalty)}`);
+  else scoreNotes.push(`계산된 페널티 0점`);
+  const applied = [];
+  if(sourceApplications.length) applied.push(`<div class="applied-effect"><strong>이 카드가 적용한 효과:</strong> ${sourceApplications.map(escapeHtml).join(' / ')}</div>`);
+  if(stateNotes.length) applied.push(`<div class="applied-effect"><strong>이 카드에 적용된 상태:</strong> ${stateNotes.map(escapeHtml).join(' / ')}</div>`);
+  applied.push(`<div class="applied-effect"><strong>점수 반영:</strong> ${scoreNotes.map(escapeHtml).join(' / ')}</div>`);
+  return `<div class="effect-line"><strong>${escapeHtml(card.name)} <small>(${suitLabels[card.suit]} · ${row.zone})</small></strong>${applied.join('')}</div>`;
+}
+function allCards() { return [...selectedHand, ...selectedAfterlife]; }
+function livingHeroes() { return selectedHand.filter(c=>c.suit==='hero'); }
+function allHeroes() { return allCards().filter(c=>c.suit==='hero'); }
+function isSelectedInAfterlife(card) { return selectedAfterlife.some(c=>c.id===card.id); }
+function countTags(cards, tagName, ignoreId=null) { return cards.reduce((sum,c)=>sum + (c.id!==ignoreId && cardHasTag(c,tagName) ? 1 : 0),0); }
+function hasTag(cards, tagName) { return countTags(cards, tagName)>0; }
+function countSuit(cards, suitName, ignoreId=null) { return cards.filter(c=>c.suit===suitName && c.id!==ignoreId).length; }
+function hasCard(cards, names) { return cards.some(c=>names.includes(c.name)); }
+function escapeHtml(value) { return String(value ?? '').replace(/[&<>"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch])); }
+function formatSignedScore(v) { return v>0?`+${v}점`:v<0?`${v}점`:'0점'; }
+function options(cards, selected='') { return cards.map(c=>`<option value="${c.id}" ${selected===c.id?'selected':''}>${escapeHtml(c.name)}(${suitLabels[c.suit]})</option>`).join(''); }
+function tagOptions(tags, selected='') { return tags.map(t=>`<option value="${t}" ${selected===t?'selected':''}>${t}</option>`).join(''); }
+
+function applyAddedTag(source, targetId, tag) {
+  if(!targetId || !tag) return alert('대상과 태그를 선택해주세요.');
+  clearSource(source);
+  const target = cloneCardRef(targetId);
+  addSource(target,'addedTags',tag);
+  target.addedTagSource = target.addedTagSource || {};
+  target.addedTagSource[source] = tag;
+  scoreConfirmed=false; updateCalculator();
+}
+function applyDisableToCard(source, targetId, disablePenalty=false) {
+  if(!targetId) return alert('대상 카드를 선택해주세요.');
+  clearSource(source);
+  const target = cloneCardRef(targetId);
+  addSource(target,'tagDisabledBy',source);
+  addSource(target,'bonusDisabledBy',source);
+  if(disablePenalty) addSource(target,'penaltyDisabledBy',source);
+  scoreConfirmed=false; updateCalculator();
+}
+function clearEffect(source) { if(window.event) window.event.stopPropagation(); clearSource(source); scoreConfirmed=false; updateCalculator(); }
+function applyLotusEffect() {
+  clearSource('연꽃 자생지');
+  livingHeroes().forEach(h=>{ addSource(h,'tagDisabledBy','연꽃 자생지'); addSource(h,'bonusDisabledBy','연꽃 자생지'); addSource(h,'penaltyDisabledBy','연꽃 자생지'); });
+  scoreConfirmed=false; updateCalculator();
+}
+function applyCirceEffect() {
+  if(livingHeroes().some(h=>cardHasTag(h,'영악함'))) { alert('살아 있는 영악함 영웅이 있어서 키르케 효과가 발동하지 않습니다.'); clearEffect('키르케'); return; }
+  clearSource('키르케');
+  livingHeroes().filter(h=>h.id!=='circe').forEach(h=>{ addSource(h,'tagDisabledBy','키르케'); addSource(h,'bonusDisabledBy','키르케'); });
+  scoreConfirmed=false; updateCalculator();
+}
+function applyLetheEffect() {
+  clearSource('레테강');
+  selectedAfterlife.filter(c=>c.suit==='hero').forEach(h=>{ addSource(h,'tagDisabledBy','레테강'); addSource(h,'bonusDisabledBy','레테강'); });
+  scoreConfirmed=false; updateCalculator();
+}
+function applyPenaltyRemoval(source, targetId, monsterOnly=false) {
+  if(!targetId) return alert('페널티를 제거할 카드를 선택해주세요.');
+  const target = cloneCardRef(targetId);
+  if(monsterOnly && target.suit !== 'monster') return alert('마법 고삐는 몬스터 카드에만 적용해주세요.');
+  clearSource(source);
+  addSource(target,'penaltyDisabledBy',source);
+  scoreConfirmed=false; updateCalculator();
+}
+function moveCardToAfterlifeByEffect(source, targetId) {
+  if(!targetId) return alert('사후세계로 보낼 카드를 선택해주세요.');
+  const card = cloneCardRef(targetId);
+  if(!selectedAfterlife.some(c=>c.id===targetId)) selectedAfterlife.push(card);
+  selectedHand = selectedHand.filter(c=>c.id!==targetId);
+  scoreConfirmed=false; updateCardButtons(); updateCalculator();
+}
+function applyMonsterAfterlifeEffects() {
+  const msgs=[]; let mustMove=false; const live=livingHeroes(); const all=allCards();
+  const fail = (id, cond, msg) => { if(selectedHand.some(c=>c.id===id) && !cond) { mustMove=true; msgs.push(msg); } };
+  fail('antaeus', live.some(h=>cardHasTag(h,'완력')), '안타이오스 조건 미충족');
+  fail('calydonian_boar', live.length>=3, '칼리돈의 멧돼지 조건 미충족');
+  const distinctHeroTags = new Set(live.flatMap(h=>getEffectiveTags(h)));
+  fail('hydra', distinctHeroTags.size>=3, '레르네의 히드라 조건 미충족');
+  fail('medusa', live.some(h=>cardHasTag(h,'영악함')||cardHasTag(h,'민첩')), '메두사 조건 미충족');
+  fail('minotaur', live.some(h=>cardHasTag(h,'영악함')||cardHasTag(h,'완력')), '미노타우로스 조건 미충족');
+  fail('scylla_charybdis', live.some(h=>cardHasTag(h,'민첩')), '스킬라와 카리브디스 조건 미충족');
+  fail('siren', live.some(h=>cardHasTag(h,'현명함')), '세이렌 조건 미충족');
+  if(!mustMove) return alert('현재 자동으로 사후세계로 보낼 영웅이 없습니다.');
+  const protectedId = selectedHand.some(c=>c.id==='helmet_of_hades') ? helmetProtectedHeroId : '';
+  live.forEach(h=>{ if(h.id!==protectedId) { if(!selectedAfterlife.some(c=>c.id===h.id)) selectedAfterlife.push(h); selectedHand = selectedHand.filter(c=>c.id!==h.id); } });
+  alert(msgs.join('\n') + '\n조건 미충족으로 영웅을 사후세계에 반영했습니다.');
+  scoreConfirmed=false; updateCardButtons(); updateCalculator();
+}
+function setHelmetProtected(id) { helmetProtectedHeroId=id; scoreConfirmed=false; updateCalculator(); }
+function setDionysusBaseTarget(id) { dionysusBaseTargetId=id; scoreConfirmed=false; updateCalculator(); }
+
+function renderSpecialEffectControls(card) {
+  const live = livingHeroes(); const heroes = allHeroes(); const all=allCards();
+  const penaltyCards = all.filter(c => calcPenalty(c, {hand:selectedHand,afterlife:selectedAfterlife,all:allCards(),liveHeroes:livingHeroes()}) !== 0 || c.suit==='monster');
+  const panel = (title, inner) => `<div class="effect-panel" onclick="event.stopPropagation()"><div class="effect-panel-title">${title}</div>${inner}</div>`;
+  if(card.id==='athena') return panel('아테나 효과', `<div class="effect-row"><select id="athena-target">${options(live)}</select><select id="athena-tag">${tagOptions(getEffectiveTags(card))}</select><button class="apply" onclick="applyAddedTag('아테나',document.getElementById('athena-target').value,document.getElementById('athena-tag').value)">태그 추가</button><button class="clear" onclick="clearEffect('아테나')">해제</button></div><div class="effect-note">살아 있는 영웅 1명에게 아테나가 가진 태그 1개를 추가합니다.</div>`);
+  if(card.id==='chiron') return panel('케이론 효과', `<div class="effect-row"><select id="chiron-target">${options(live)}</select><select id="chiron-tag">${tagOptions(ALL_TAGS)}</select><button class="apply" onclick="applyAddedTag('케이론',document.getElementById('chiron-target').value,document.getElementById('chiron-tag').value)">태그 추가</button><button class="clear" onclick="clearEffect('케이론')">해제</button></div><div class="effect-note">살아 있는 영웅 1명에게 원하는 태그 1개를 추가합니다.</div>`);
+  if(card.id==='winged_sandals') return panel('날개 달린 샌들 효과', `<div class="effect-row"><select id="sandals-target">${options(live)}</select><button class="apply" onclick="applyAddedTag('날개 달린 샌들',document.getElementById('sandals-target').value,'민첩')">민첩 추가</button><button class="clear" onclick="clearEffect('날개 달린 샌들')">해제</button></div>`);
+  if(card.id==='lotus_eaters') return panel('연꽃 자생지 효과', `<div class="effect-row"><button class="apply" onclick="applyLotusEffect()">살아 있는 모든 영웅 태그/보너스/페널티 제거</button><button class="clear" onclick="clearEffect('연꽃 자생지')">해제</button></div>`);
+  if(card.id==='circe') return panel('키르케 효과', `<div class="effect-row"><button class="apply" onclick="applyCirceEffect()">조건 확인 후 다른 살아 있는 영웅 태그/보너스 제거</button><button class="clear" onclick="clearEffect('키르케')">해제</button></div>`);
+  if(card.id==='dionysus') return panel('디오니소스 효과', `<div class="effect-row"><span>제거 대상</span><select id="dionysus-remove">${options(heroes)}</select><button class="apply" onclick="applyDisableToCard('디오니소스',document.getElementById('dionysus-remove').value,false)">태그/보너스 제거</button></div><div class="effect-row"><span>기본점수 추가</span><select id="dionysus-base">${options(heroes,dionysusBaseTargetId)}</select><button class="apply" onclick="setDionysusBaseTarget(document.getElementById('dionysus-base').value)">적용</button><button class="clear" onclick="clearEffect('디오니소스')">전체 해제</button></div><div class="effect-note">태그 또는 보너스가 없는 영웅 1명의 기본점수를 추가하는 효과는 두 번째 선택으로 반영합니다.</div>`);
+  if(card.id==='river_lethe') return panel('레테강 효과', `<div class="effect-row"><button class="apply" onclick="applyLetheEffect()">사후세계 영웅 태그/보너스 제외 적용</button><button class="clear" onclick="clearEffect('레테강')">해제</button></div>`);
+  if(card.id==='moly') return panel('몰리 효과', `<div class="effect-row"><select id="moly-target">${options(penaltyCards)}</select><button class="apply" onclick="applyPenaltyRemoval('몰리',document.getElementById('moly-target').value,false)">페널티 제거</button><button class="clear" onclick="clearEffect('몰리')">해제</button></div>`);
+  if(card.id==='magic_bridle') return panel('마법 고삐 효과', `<div class="effect-row"><select id="bridle-target">${options(all.filter(c=>c.suit==='monster'))}</select><button class="apply" onclick="applyPenaltyRemoval('마법 고삐',document.getElementById('bridle-target').value,true)">몬스터 페널티 제거</button><button class="clear" onclick="clearEffect('마법 고삐')">해제</button></div>`);
+  if(card.id==='helmet_of_hades') return panel('하데스의 투구 효과', `<div class="effect-row"><select id="helmet-target">${options(live,helmetProtectedHeroId)}</select><button class="apply" onclick="setHelmetProtected(document.getElementById('helmet-target').value)">보호 영웅 지정</button><button class="clear" onclick="clearEffect('하데스의 투구')">해제</button></div><div class="effect-note">몬스터 자동 사후세계 이동 적용 시 이 영웅 1명을 손패에 남깁니다.</div>`);
+  if(card.id==='heracles') return panel('헤라클레스 종료 효과', `<div class="effect-row"><select id="heracles-target">${options(live.filter(h=>h.id!=='heracles'))}</select><button class="apply" onclick="moveCardToAfterlifeByEffect('헤라클레스',document.getElementById('heracles-target').value)">영웅 1명 사후세계로</button></div>`);
+  if(card.id==='pomegranate') return panel('석류 종료 효과', `<div class="effect-row"><select id="pomegranate-target">${options(selectedHand.filter(c=>c.suit==='god'))}</select><button class="apply" onclick="moveCardToAfterlifeByEffect('석류',document.getElementById('pomegranate-target').value)">신 1명 사후세계로</button></div>`);
+  if(card.id==='sacrificial_altar') return panel('희생제단 효과', `<div class="effect-row"><select id="altar-target">${options(live)}</select><button class="apply" onclick="moveCardToAfterlifeByEffect('희생제단',document.getElementById('altar-target').value)">영웅 1명 사후세계로</button></div><div class="effect-note">대체로 뽑은 카드는 카드 목록에서 직접 추가해주세요.</div>`);
+  if(['antaeus','calydonian_boar','hydra','medusa','minotaur','scylla_charybdis','siren'].includes(card.id)) return panel('몬스터 종료 효과', `<div class="effect-row"><button class="apply" onclick="applyMonsterAfterlifeEffects()">조건 미충족 영웅 사후세계 이동 자동 반영</button></div>`);
+  return '';
+}
+
+function calcBonus(card,state) {
+  if(isBonusDisabled(card)) return 0;
+  const hand=state.hand, afterlife=state.afterlife, all=state.all, liveHeroes=state.liveHeroes;
+  switch(card.id) {
+    case "apollo": return countTags(all,"예술가",card.id)*5;
+    case "ares": return countTags(all,"전사",card.id)*7;
+    case "artemis": return all.filter(c=>c.suit==="monster"&&cardHasTag(c,"적대적")).length*7;
+    case "athena": return liveHeroes.filter(h=>getEffectiveTags(h).some(t=>cardHasTag(card,t))).length*4;
+    case "demeter": return countTags(all,"식물",card.id)*5;
+    case "hades": return afterlife.filter(c=>c.id!==card.id).length*3;
+    case "hecate": return countTags(all,"마법",card.id)*9;
+    case "hephaestus": return countSuit(all,"item",card.id)*10;
+    case "hera": return Math.floor(liveHeroes.length/2)*12;
+    case "hermes": return (countSuit(all,"place")+liveHeroes.filter(h=>cardHasTag(h,"민첩")).length+afterlife.filter(c=>c.suit==="hero").length)*5;
+    case "muse": return countTags(all,"예술가",card.id)*8;
+    case "persephone": return Math.min(afterlife.length,countTags(all,"식물",card.id))*6;
+    case "poseidon": return (countTags(all,"물",card.id)+countSuit(all,"monster"))*5;
+    case "zeus": return (countSuit(all,"god",card.id)+countTags(all,"군주"))*4;
+    case "dionysus": return dionysusBaseTargetId ? (cloneCardRef(dionysusBaseTargetId)?.base || 0) : 0;
+    case "achilles": return hasCard(all,["아테나","헤라","포세이돈","스틱스강"])?5:0;
+    case "andromeda": return all.some(c=>c.suit==="quest")&&all.some(c=>c.suit==="monster"&&cardHasTag(c,"적대적"))?17:0;
+    case "arachne": return countSuit(all,"hero")>countSuit(all,"god")?10:0;
+    case "hector": return hasCard(all,["아레스","아폴론","아르테미스"])?6:0;
+    case "helen": return countTags(all,"전사")*10;
+    case "heracles": return all.filter(c=>c.suit==="monster"&&cardHasTag(c,"적대적")).length*5;
+    case "homer": return countTags(all,"전사")*6+countSuit(all,"quest")*6;
+    case "jason": return countSuit(all,"quest")*4+Math.max(0,liveHeroes.length-1)*4;
+    case "odysseus": return countTags(all,"물")*4;
+    case "orpheus": return hand.some(c=>c.id==="orpheus")&&afterlife.length?Math.max(...afterlife.map(c=>c.base)):0;
+    case "perseus": return (countSuit(all,"god")>0?5:0)+(countSuit(all,"item")>0?5:0);
+    case "argo": return countTags(all,"물")*liveHeroes.length*5;
+    case "golden_apple": return countSuit(all,"quest")>0?14:0;
+    case "golden_fleece": return liveHeroes.length>0&&hasTag(all,"마법")?12:0;
+    case "trojan_horse": return hasTag(all,"영악함")&&liveHeroes.length>=2?15:0;
+    case "winged_sandals": return liveHeroes.length>0&&countSuit(all,"place")>=2?15:0;
+    case "mount_olympus": return countSuit(all,"god")*6;
+    case "palace": return (hasTag(all,"군주")?7:0)+countTags(all,"예술가")*7;
+    case "garden_persephone": return all.filter(c=>c.suit==="item"&&cardHasTag(c,"식물")).length*4;
+    case "river_styx": return countSuit(all,"god")>0&&liveHeroes.length>0?5:0;
+    case "sacrificial_altar": return afterlife.filter(c=>c.suit==="hero").length*7;
+    case "temple": return (countSuit(all,"god")>0?6:0)+countTags(all,"예술가")*6;
+    case "labyrinth": return (all.some(c=>c.suit==="monster"&&cardHasTag(c,"적대적"))?10:0)+(liveHeroes.some(h=>cardHasTag(h,"영악함"))?10:0);
+    case "cerberus": return afterlife.filter(c=>c.suit==="hero").length*5;
+    case "pegasus": return liveHeroes.some(h=>cardHasTag(h,"예술가")&&cardHasTag(h,"민첩"))?10:0;
+    case "twelve_labors": return liveHeroes.length?(countTags(all,"완력")+all.filter(c=>c.suit==="monster"&&cardHasTag(c,"적대적")).length)*12:0;
+    case "apotheosis": return liveHeroes.length&&countSuit(all,"god")&&hasTag(all,"신성")&&hasTag(all,"마법")?28:0;
+    case "eleusinian_mysteries": return liveHeroes.length&&hasTag(all,"식물")&&hasTag(all,"예술가")&&hasTag(all,"마법")?27:0;
+    case "legendary_threat": return ["hero","god","place","monster","item"].every(s=>countSuit(all,s)>0)&&liveHeroes.length?30:0;
+    case "glimpse_divinity": return liveHeroes.length?(countSuit(all,"god")+countTags(all,"신성"))*8:0;
+    case "long_journey": return liveHeroes.length?countSuit(all,"place")*11:0;
+    case "lost_knowledge": return liveHeroes.length?(countTags(all,"예술가")+countTags(all,"마법")+countTags(all,"현명함"))*7:0;
+    case "olympic_games": return liveHeroes.length?liveHeroes.filter(h=>cardHasTag(h,"민첩")||cardHasTag(h,"완력")).length*11:0;
+    case "resisting_kingdom": return liveHeroes.some(h=>cardHasTag(h,"군주"))&&hasTag(all,"현명함")?27:0;
+    case "trojan_war": return liveHeroes.length?countTags(all,"전사")*13:0;
+    case "visit_underworld": return liveHeroes.length?afterlife.length*6:0;
+    default: return 0;
+  }
+}
+function calcPenalty(card,state) {
+  if(isPenaltyDisabled(card)) return 0;
+  const all=state.all, liveHeroes=state.liveHeroes, inAfterlife=isSelectedInAfterlife(card);
+  switch(card.id) {
+    case "apple_of_discord": { let p=0; const gc=countSuit(all,"god"), hc=liveHeroes.length, mc=countSuit(all,"monster"); if(gc>1)p-=(gc-1)*5; if(hc>1)p-=(hc-1)*5; if(mc>1)p-=(mc-1)*5; return p; }
+    case "garden_hesperides": return all.some(c=>c.suit==="monster"&&cardHasTag(c,"적대적"))?0:-12;
+    case "river_lethe": return inAfterlife?0:-20;
+    case "river_styx": return inAfterlife?0:-20;
+    case "cerberus": return inAfterlife?0:-5;
+    case "pegasus": return hasTag(all,"현명함")?0:-10;
+    default: return 0;
+  }
+}
+function getWarnings(state) {
+  const hand=state.hand, afterlife=state.afterlife, live=state.liveHeroes, warnings=[];
+  const selectedIds = new Set([...hand,...afterlife].map(c=>c.id));
+  if(selectedIds.has('athena')) warnings.push('아테나: 필요하면 선택된 카드 목록에서 대상 영웅과 추가 태그를 지정하세요.');
+  if(selectedIds.has('chiron')) warnings.push('케이론: 필요하면 선택된 카드 목록에서 대상 영웅과 추가 태그를 지정하세요.');
+  if(selectedIds.has('winged_sandals')) warnings.push('날개 달린 샌들: 필요하면 선택된 카드 목록에서 민첩 태그를 추가할 영웅을 지정하세요.');
+  if(selectedIds.has('dionysus')) warnings.push('디오니소스: 제거 대상과 기본점수 추가 대상을 선택했는지 확인하세요.');
+  if(selectedIds.has('moly')) warnings.push('몰리: 제거할 페널티를 선택했는지 확인하세요.');
+  if(selectedIds.has('magic_bridle')) warnings.push('마법 고삐: 제거할 몬스터 페널티를 선택했는지 확인하세요.');
+  if(selectedIds.has('helmet_of_hades')) warnings.push('하데스의 투구: 몬스터 종료 효과 자동 반영 전 보호할 영웅을 지정하세요.');
+  if(selectedIds.has('heracles') && hand.some(c=>c.id==='heracles')) warnings.push('헤라클레스: 게임 종료 시 다른 영웅 1명을 사후세계로 보내야 할 수 있습니다.');
+  if(selectedIds.has('pomegranate')) warnings.push('석류: 게임 종료 시 손패의 신 1명을 사후세계로 보내야 할 수 있습니다.');
+  if(selectedIds.has('sacrificial_altar')) warnings.push('희생제단: 사후세계로 보낸 영웅을 대체할 카드는 직접 추가해주세요.');
+  const monsterIds=['antaeus','calydonian_boar','hydra','medusa','minotaur','scylla_charybdis','siren'];
+  if(monsterIds.some(id=>selectedIds.has(id))) warnings.push('일부 몬스터는 조건 미충족 시 모든 영웅을 사후세계로 보냅니다. 해당 카드의 자동 반영 버튼을 확인하세요.');
+  return warnings;
+}
+
+function renderCards() {
+  const grid=document.getElementById('card-display-grid'); grid.innerHTML='';
+  cardsDatabase.sort((a,b)=>suitOrder[a.suit]-suitOrder[b.suit] || a.name.localeCompare(b.name,'ko'));
+  cardsDatabase.forEach(card=>{
+    const el=document.createElement('div'); el.className='game-card'; el.dataset.suit=card.suit; el.dataset.id=card.id;
+    el.innerHTML=`<div><div class="card-header"><div class="card-title-line"><span class="card-title">${escapeHtml(card.name)}</span><span class="card-suit suit-${card.suit}">(${suitLabels[card.suit]})</span><span class="card-tags">${(card.tags||[]).length?(card.tags||[]).map(t=>`<span class="tag-badge">${t}</span>`).join(''):'<span class="tag-badge">태그 없음</span>'}</span></div><span class="card-score-badge">${card.base}</span></div><div class="card-effect">${escapeHtml(card.effect)}</div></div><div class="card-actions"><button class="action-btn btn-hand" onclick="toggleHand('${card.id}')">손패</button><button class="action-btn btn-afterlife" onclick="toggleAfterlife('${card.id}')">사후세계</button></div>`;
+    grid.appendChild(el);
+  });
+  setActiveSuit(activeSuit);
+}
+function updateCardButtons() { document.querySelectorAll('.game-card').forEach(el=>{ const id=el.dataset.id; el.querySelector('.btn-hand').classList.toggle('selected',selectedHand.some(c=>c.id===id)); el.querySelector('.btn-afterlife').classList.toggle('selected',selectedAfterlife.some(c=>c.id===id)); }); }
+function toggleHand(id) { const card=cloneCardRef(id); if(selectedHand.some(c=>c.id===id)) selectedHand=selectedHand.filter(c=>c.id!==id); else { selectedHand.push(card); selectedAfterlife=selectedAfterlife.filter(c=>c.id!==id); } scoreConfirmed=false; updateCardButtons(); updateCalculator(); }
+function toggleAfterlife(id) { const card=cloneCardRef(id); if(selectedAfterlife.some(c=>c.id===id)) selectedAfterlife=selectedAfterlife.filter(c=>c.id!==id); else { selectedAfterlife.push(card); selectedHand=selectedHand.filter(c=>c.id!==id); } scoreConfirmed=false; updateCardButtons(); updateCalculator(); }
+function buildScoreData() {
+  const state={hand:selectedHand, afterlife:selectedAfterlife, all:allCards(), liveHeroes:livingHeroes()};
+  const baseScore=state.all.reduce((s,c)=>s+c.base,0); let bonusScore=0, penaltyScore=0;
+  const effectRows=state.all.map(card=>{ const bonus=calcBonus(card,state); const penalty=calcPenalty(card,state); bonusScore+=bonus; penaltyScore+=penalty; return {card, zone:isSelectedInAfterlife(card)?'사후세계':'손패', bonus, penalty, effect:card.effect||'효과 없음.'}; });
+  const afterlifePenalty=selectedAfterlife.length*-10; const manualScore=parseInt(document.getElementById('manual-adjust').value||'0',10); const finalScore=baseScore+bonusScore+penaltyScore+afterlifePenalty+manualScore; const warnings=getWarnings(state);
+  return {state,baseScore,bonusScore,penaltyScore,afterlifePenalty,manualScore,finalScore,effectRows,warnings};
+}
+function updateCalculator() {
+  const data=buildScoreData();
+  document.getElementById('base-score').innerText=data.baseScore+'점'; document.getElementById('bonus-score').innerText=data.bonusScore+'점'; document.getElementById('penalty-score').innerText=data.penaltyScore+'점'; document.getElementById('afterlife-score').innerText=data.afterlifePenalty+'점'; document.getElementById('final-score').innerText=data.finalScore+'점';
+  const summary=document.getElementById('selected-cards-summary');
+  if(data.state.all.length===0) summary.innerHTML='<p style="color:var(--text-muted);font-style:italic;">선택된 카드가 없습니다.</p>';
+  else {
+    summary.innerHTML='';
+    const renderSelected=(c,zone)=>{
+      summary.innerHTML += `<div class="selected-item" onclick="focusCard('${c.id}')"><div><div class="selected-card-title-row"><span class="selected-card-name">${zone==='hand'?'✋':'💀'} ${escapeHtml(c.name)} <small class="selected-suit-label suit-${c.suit}">(${suitLabels[c.suit]})</small></span>${renderEffectiveTagsInline(c)}</div><div class="selected-card-score">${c.base}점${zone==='afterlife'?' / 사후세계 -10':''}</div><div class="selected-card-effect">${escapeHtml(c.effect)}</div></div><div class="selected-actions"><button class="selected-zone-btn ${zone==='hand'?'active-hand':''}" onclick="setCardZone(event,'${c.id}','hand')">손패</button><button class="selected-zone-btn ${zone==='afterlife'?'active-afterlife':''}" onclick="setCardZone(event,'${c.id}','afterlife')">사후세계</button></div>${renderSpecialEffectControls(c)}</div>`;
+    };
+    selectedHand.forEach(c=>renderSelected(c,'hand')); selectedAfterlife.forEach(c=>renderSelected(c,'afterlife'));
+  }
+  document.getElementById('warnings').innerHTML=data.warnings.map(w=>`<div>• ${escapeHtml(w)}</div>`).join('');
+  if(scoreConfirmed) renderConfirmedScore(data);
+}
+function confirmScore() { scoreConfirmed=true; updateCalculator(); const box=document.getElementById('confirm-result'); if(box) box.scrollIntoView({behavior:'smooth',block:'nearest'}); }
+function renderConfirmedScore(data) {
+  const box=document.getElementById('confirm-result'); box.style.display='block';
+  const handList=selectedHand.length?selectedHand.map(c=>`${escapeHtml(c.name)}(${suitLabels[c.suit]})`).join(', '):'없음';
+  const afterList=selectedAfterlife.length?selectedAfterlife.map(c=>`${escapeHtml(c.name)}(${suitLabels[c.suit]})`).join(', '):'없음';
+  const effectHtml=data.effectRows.filter(r=>{ const apps=getEffectApplicationsBySource(r.card.name); return r.bonus!==0||r.penalty!==0||apps.length||isTagDisabled(r.card)||isBonusDisabled(r.card)||isPenaltyDisabled(r.card)||getSources(r.card,'addedTags').length||r.effect.replace(/\s/g,'')!=='효과없음.'; }).map(r=>renderAppliedEffectLine(r)).join('') || '<div class="effect-line">적용될 카드 효과가 없습니다.</div>';
+  const warningsHtml=data.warnings.length?data.warnings.map(w=>`<div>• ${escapeHtml(w)}</div>`).join(''):'<div>추가 확인이 필요한 효과가 없습니다.</div>';
+  box.innerHTML=`<h3>✅ 확정 결과</h3><div><strong>손패:</strong> ${handList}</div><div><strong>사후세계:</strong> ${afterList}</div><div class="confirm-result-section"><div class="confirm-result-row"><span>기본 점수</span><strong>${data.baseScore}점</strong></div><div class="confirm-result-row"><span>보너스 점수</span><strong class="plus">${formatSignedScore(data.bonusScore)}</strong></div><div class="confirm-result-row"><span>페널티 감점</span><strong class="minus">${formatSignedScore(data.penaltyScore)}</strong></div><div class="confirm-result-row"><span>사후세계 감점</span><strong class="minus">${formatSignedScore(data.afterlifePenalty)}</strong></div><div class="confirm-result-row"><span>수동 보정</span><strong>${formatSignedScore(data.manualScore)}</strong></div><div class="confirm-result-row confirm-result-total"><span>최종 점수</span><span>${data.finalScore}점</span></div></div><div class="confirm-result-section"><strong>효과 적용 내역</strong>${effectHtml}</div><div class="confirm-result-section" style="color:#fca5a5;"><strong>확인 필요</strong>${warningsHtml}</div>`;
+}
+function filterSuit(event,suit) { activeSuit=suit; setActiveSuit(suit); }
+function handleCardSearch() { activeSearch = (document.getElementById('card-search')?.value || '').trim().toLowerCase(); setActiveSuit(activeSuit); }
+function clearCardSearch() { const input=document.getElementById('card-search'); if(input) input.value=''; activeSearch=''; setActiveSuit(activeSuit); }
+function setActiveSuit(suit) {
+  activeSuit=suit;
+  document.querySelectorAll('.tab-btn').forEach(btn=>{ const m=btn.getAttribute('onclick')?.match(/'([^']+)'/); btn.classList.toggle('active',m&&m[1]===suit); });
+  let visibleCount=0;
+  document.querySelectorAll('.game-card').forEach(card=>{
+    const cardData = cardsDatabase.find(c=>c.id===card.dataset.id);
+    const suitMatch = suit==='all'||card.dataset.suit===suit;
+    const searchMatch = !activeSearch || (cardData && cardData.name.toLowerCase().includes(activeSearch));
+    const show = suitMatch && searchMatch;
+    card.style.display = show ? 'flex' : 'none';
+    if(show) visibleCount++;
+  });
+  const note=document.getElementById('search-result-note');
+  if(note) note.textContent = activeSearch ? `검색 결과 ${visibleCount}장` : '';
+}
+function clearCardSelectionState(id) {
+  const c = cardsDatabase.find(card => card.id === id);
+  if(!c) return;
+  delete c.addedTags;
+  delete c.tagDisabledBy;
+  delete c.bonusDisabledBy;
+  delete c.penaltyDisabledBy;
+  delete c.addedTagSource;
+  if(dionysusBaseTargetId === id) dionysusBaseTargetId = '';
+  if(helmetProtectedHeroId === id) helmetProtectedHeroId = '';
+}
+function setCardZone(event,id,zone) {
+  event.stopPropagation();
+  const isHand = selectedHand.some(c=>c.id===id);
+  const isAfterlife = selectedAfterlife.some(c=>c.id===id);
+
+  // 선택된 카드 목록에서 현재 적용된 버튼을 다시 누르면 목록에서 제거
+  if((zone==='hand' && isHand) || (zone==='afterlife' && isAfterlife)) {
+    selectedHand = selectedHand.filter(c=>c.id!==id);
+    selectedAfterlife = selectedAfterlife.filter(c=>c.id!==id);
+    clearCardSelectionState(id);
+  } else if(zone==='hand') {
+    if(!isHand) selectedHand.push(cloneCardRef(id));
+    selectedAfterlife = selectedAfterlife.filter(c=>c.id!==id);
+  } else {
+    if(!isAfterlife) selectedAfterlife.push(cloneCardRef(id));
+    selectedHand = selectedHand.filter(c=>c.id!==id);
+  }
+  scoreConfirmed=false;
+  updateCardButtons();
+  updateCalculator();
+}
+function resetSelection() { scoreConfirmed=false; selectedHand=[]; selectedAfterlife=[]; dionysusBaseTargetId=''; helmetProtectedHeroId=''; cardsDatabase.forEach(c=>{ delete c.addedTags; delete c.tagDisabledBy; delete c.bonusDisabledBy; delete c.penaltyDisabledBy; delete c.addedTagSource; }); document.getElementById('manual-adjust').value=0; const box=document.getElementById('confirm-result'); box.style.display='none'; box.innerHTML=''; updateCardButtons(); updateCalculator(); }
+function focusCard(id) { const card=cloneCardRef(id); if(!card) return; setActiveSuit(card.suit); const el=document.querySelector(`.game-card[data-id="${id}"]`); if(!el) return; el.scrollIntoView({behavior:'smooth',block:'center'}); el.classList.add('focus-highlight'); setTimeout(()=>el.classList.remove('focus-highlight'),1600); }
+renderCards(); updateCardButtons(); updateCalculator();
+</script>
+</body>
+</html>
